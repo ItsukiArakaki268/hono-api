@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
+import { basicAuth } from "hono/basic-auth";
 
 const app = new Hono();
 
@@ -21,13 +22,27 @@ app.get("/posts/:id", (c) => {
   return c.text(`You want to see ${page} of ${id}`);
 });
 
-// app.get("/:username", (c) => {
-//   const { username } = c.req.param();
-//   return c.html(
-//     html`<!DOCTYPE html>
-//       <h1>Hello! ${username}!</h1>`
-//   );
-// });
+app.post("/posts", (c) => c.text("Created!", 201));
+
+app.delete("/posts/:id", (c) => {
+  return c.text(`${c.req.param("id")} is deleted!`);
+});
+
+app.use(
+  "/admin/*",
+  basicAuth({
+    username: "admin",
+    password: "secret",
+  })
+);
+
+app.get("/admin", (c) => {
+  return c.text("You are authorized!");
+});
+
+app.get("/admin/detail", (c) => {
+  return c.text("Your password is 1234");
+});
 
 const View = () => {
   return (
