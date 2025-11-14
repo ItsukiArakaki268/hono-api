@@ -3,6 +3,7 @@ import posts from "./routes/posts";
 import admin from "./routes/admin";
 import api from "./routes/api";
 import { View } from "./components/view";
+import tasks from "./routes/tasks";
 
 const app = new Hono();
 
@@ -17,5 +18,6 @@ app.get("/page", (c) => {
 app.route("/posts", posts);
 app.route("/admin", admin);
 app.route("/api", api);
+app.route("/tasks", tasks);
 
 export default app;
