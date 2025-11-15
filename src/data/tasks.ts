@@ -1,22 +1,22 @@
 export type Task = {
-  id: string;
+  id: number;
   title: string;
-  competed: boolean;
+  completed: boolean;
 };
 
 export const tasks: Task[] = [
   {
-    id: "1",
+    id: 1,
     title: "Study Hono",
-    competed: false,
+    completed: false,
   },
   {
-    id: "2",
+    id: 2,
     title: "Running",
-    competed: true,
+    completed: true,
   },
 ];
 
-export const generatedId = (): string => {
-  return Date.now().toString();
+export const generatedId = (): number => {
+  return tasks.length > 0 ? tasks[tasks.length - 1].id + 1 : 1;
 };
