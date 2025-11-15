@@ -62,4 +62,56 @@ tasksRoute.post("/", async (c) => {
   );
 });
 
+tasksRoute.put("/:id", async (c) => {
+  const id = Number(c.req.param("id"));
+  const body = await c.req.json<{ title?: string; completed?: boolean }>();
+  const task = tasks.find((t) => t.id === id);
+
+  if (!task) {
+    return c.json(
+      {
+        success: false,
+        error: "Task not found",
+      },
+      404
+    );
+  }
+
+  if (body.title !== undefined) {
+    task.title = body.title;
+  }
+  if (body.completed !== undefined) {
+    task.completed = body.completed;
+  }
+
+  return c.json({
+    success: true,
+    data: task,
+    message: "Task updated successfully",
+  });
+});
+
+tasksRoute.delete("/:id", (c) => {
+  const id = Number(c.req.param("id"));
+  const taskIndex = tasks.findIndex((t) => t.id === id);
+
+  if (taskIndex === -1) {
+    return c.json(
+      {
+        success: false,
+        error: "Task not found",
+      },
+      404
+    );
+  }
+
+  const deletedTask = tasks.splice(taskIndex, 1)[0];
+
+  return c.json({
+    success: true,
+    data: deletedTask,
+    message: "Task deleted successfully",
+  });
+});
+
 export default tasksRoute;
