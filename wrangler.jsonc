@@ -2,10 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "hono-api",
   "main": "src/index.tsx",
-  "compatibility_date": "2025-10-21",
-  "vars": {
-    "DATABASE_URL": ""
-  }
+  "compatibility_date": "2025-10-21"
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],
