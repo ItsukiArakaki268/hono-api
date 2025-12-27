@@ -6,7 +6,11 @@ import { View } from "./components/view";
 import tasks from "./routes/tasks";
 import db from "./routes/db";
 
-const app = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+};
+
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");
