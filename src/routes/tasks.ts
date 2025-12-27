@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { tasks, generatedId, Task } from "../data/tasks";
+// import { tasks, generatedId, Task } from "../data/tasks";
 import { neon } from "@neondatabase/serverless";
 
 type Bindings = {
@@ -86,32 +86,37 @@ tasksRoute.post("/", async (c) => {
 });
 
 tasksRoute.put("/:id", async (c) => {
-  const id = Number(c.req.param("id"));
-  const body = await c.req.json<{ title?: string; completed?: boolean }>();
-  const task = tasks.find((t) => t.id === id);
+  try {
+    const id = Number(c.req.param("id"));
+    const body = await c.req.json<{ title: string; completed: boolean }>();
 
-  if (!task) {
-    return c.json(
-      {
-        success: false,
-        error: "Task not found",
-      },
-      404
-    );
-  }
+    const sql = neon(c.env.DATABASE_URL);
+    const result = await sql`
+      UPDATE tasks
+      SET title = ${body.title}, completed = ${body.completed}
+      WHERE id = ${id}
+      RETURNING id, title, completed
+    `;
 
-  if (body.title !== undefined) {
-    task.title = body.title;
-  }
-  if (body.completed !== undefined) {
-    task.completed = body.completed;
-  }
+    if (result.length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: "Task not found",
+        },
+        404
+      );
+    }
 
-  return c.json({
-    success: true,
-    data: task,
-    message: "Task updated successfully",
-  });
+    return c.json({
+      success: true,
+      data: result[0],
+      message: "Task updated successfully",
+    });
+  } catch (error) {
+    console.error("Failed to update task:", error);
+    return c.json({ success: false, error: "Failed to update task" }, 500);
+  }
 });
 
 tasksRoute.delete("/:id", async (c) => {
