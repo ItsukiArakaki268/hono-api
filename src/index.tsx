@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import admin from "./routes/admin";
 import { View } from "./components/view";
 import tasks from "./routes/tasks";
@@ -9,6 +10,13 @@ type Bindings = {
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
+
+// CORS設定を追加
+app.use("/*", cors({
+  origin: "*",
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type"],
+}));
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");
