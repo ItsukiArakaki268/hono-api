@@ -51,34 +51,38 @@ tasksRoute.get("/:id", async (c) => {
 });
 
 tasksRoute.post("/", async (c) => {
-  const body = await c.req.json<{ title: string; completed?: boolean }>();
+  try {
+    const body = await c.req.json<{ title: string; completed?: boolean }>();
 
-  if (!body.title || body.title.trim() === "") {
+    if (!body.title || body.title.trim() === "") {
+      return c.json(
+        {
+          success: false,
+          error: "Title is required",
+        },
+        400
+      );
+    }
+
+    const sql = neon(c.env.DATABASE_URL);
+    const result = await sql`
+      INSERT INTO tasks (title, completed)
+      VALUES (${body.title}, ${body.completed || false})
+      RETURNING id, title, completed
+    `;
+
     return c.json(
       {
-        success: false,
-        error: "Title is required",
+        success: true,
+        data: result[0],
+        message: "Task created successfully",
       },
-      400
+      201
     );
+  } catch (error) {
+    console.error("Failed to create task:", error);
+    return c.json({ success: false, error: "Failed to create task" }, 500);
   }
-
-  const newTask: Task = {
-    id: generatedId(),
-    title: body.title,
-    completed: body.completed || false,
-  };
-
-  tasks.push(newTask);
-
-  return c.json(
-    {
-      success: true,
-      data: newTask,
-      message: "Task created successfully",
-    },
-    201
-  );
 });
 
 tasksRoute.put("/:id", async (c) => {
