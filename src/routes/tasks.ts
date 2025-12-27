@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-// import { tasks, generatedId, Task } from "../data/tasks";
 import { neon } from "@neondatabase/serverless";
 
 type Bindings = {
