@@ -114,27 +114,35 @@ tasksRoute.put("/:id", async (c) => {
   });
 });
 
-tasksRoute.delete("/:id", (c) => {
-  const id = Number(c.req.param("id"));
-  const taskIndex = tasks.findIndex((t) => t.id === id);
+tasksRoute.delete("/:id", async (c) => {
+  try {
+    const id = Number(c.req.param("id"));
+    const sql = neon(c.env.DATABASE_URL);
+    const result = await sql`
+      DELETE FROM tasks
+      WHERE id = ${id}
+      RETURNING id, title, completed
+    `;
 
-  if (taskIndex === -1) {
-    return c.json(
-      {
-        success: false,
-        error: "Task not found",
-      },
-      404
-    );
+    if (result.length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: "Task not found",
+        },
+        404
+      );
+    }
+
+    return c.json({
+      success: true,
+      data: result[0],
+      message: "Task deleted successfully",
+    });
+  } catch (error) {
+    console.error("Failed to delete task:", error);
+    return c.json({ success: false, error: "Failed to delete task" }, 500);
   }
-
-  const deletedTask = tasks.splice(taskIndex, 1)[0];
-
-  return c.json({
-    success: true,
-    data: deletedTask,
-    message: "Task deleted successfully",
-  });
 });
 
 export default tasksRoute;
