@@ -1,34 +1,53 @@
 import { Hono } from "hono";
 import { tasks, generatedId, Task } from "../data/tasks";
+import { neon } from "@neondatabase/serverless";
 
-const tasksRoute = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+};
 
-tasksRoute.get("/", (c) => {
-  return c.json({
-    success: true,
-    data: tasks,
-    count: tasks.length,
-  });
+const tasksRoute = new Hono<{ Bindings: Bindings }>();
+
+tasksRoute.get("/", async (c) => {
+  try {
+    const sql = neon(c.env.DATABASE_URL);
+    const result =
+      await sql`SELECT id, title, completed FROM tasks ORDER BY id`;
+    return c.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Failed to fetch tasks:", error);
+    return c.json({ success: false, error: "Failed to fetch tasks" }, 500);
+  }
 });
 
-tasksRoute.get("/:id", (c) => {
-  const id = Number(c.req.param("id"));
-  const task = tasks.find((t) => t.id === id);
+tasksRoute.get("/:id", async (c) => {
+  try {
+    const id = Number(c.req.param("id"));
+    const sql = neon(c.env.DATABASE_URL);
+    const result =
+      await sql`SELECT id, title, completed FROM tasks WHERE id = ${id}`;
 
-  if (!task) {
-    return c.json(
-      {
-        success: false,
-        error: "Task not found",
-      },
-      404
-    );
+    if (result.length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: "Task not found",
+        },
+        404
+      );
+    }
+
+    return c.json({
+      success: true,
+      data: result[0],
+    });
+  } catch (error) {
+    console.error("Failed to fetch task:", error);
+    return c.json({ success: false, error: "Failed to fetch tasks" }, 500);
   }
-
-  return c.json({
-    success: true,
-    data: task,
-  });
 });
 
 tasksRoute.post("/", async (c) => {
